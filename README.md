@@ -6,6 +6,7 @@ A classic Tic-Tac-Toe game where two players can play against each other in the 
 
 Features
 --
+huysguitbjhi
 Two-player mode (X vs O)
 
 Highlights the winning combination
