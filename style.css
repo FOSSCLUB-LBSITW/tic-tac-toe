@@ -6,11 +6,8 @@ body {
   align-items: center;
   height: 100vh;
   margin: 0;
-  background: 
-    linear-gradient(135deg, #89f7fe 25%, transparent 25%) -50px 0,
-    linear-gradient(225deg, #89f7fe 25%, transparent 25%) -50px 0,
-    linear-gradient(315deg, #66a6ff 25%, transparent 25%),
-    linear-gradient(45deg, #66a6ff 25%, transparent 25%);
+  background-image: url("bg.jpg");
+  background-position: center;
   background-size: 100px 100px;
   background-color: #89f7fe;
 }
