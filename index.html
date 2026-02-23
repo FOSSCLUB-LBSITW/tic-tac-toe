@@ -1,69 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tic Tac Toe - Pro Edition</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <h1>Tic Tac Toe</h1>
 
-<div id="setup-container">
-  <div class="input-group">
-    <input type="text" id="p1Input" placeholder="Player X Name" maxlength="15">
-    <input type="text" id="p2Input" placeholder="Player O Name" maxlength="15">
+  <div id="setup-container">
+    <div class="input-group">
+      <input type="text" id="p1Input" placeholder="Player X Name" maxlength="15">
+      <input type="text" id="p2Input" placeholder="Player O Name" maxlength="15">
+    </div>
+    <button id="startBtn">Start Game</button>
   </div>
-  <button id="startBtn">Start Game</button>
-</div>
-
-<div id="game-container" style="display: none;">
-  <div id="status">Ready?</div>
-
-  <div class="board" id="board">
-    <div class="cell" data-index="0"></div>
-    <div class="cell" data-index="1"></div>
-    <div class="cell" data-index="2"></div>
-    <div class="cell" data-index="3"></div>
-    <div class="cell" data-index="4"></div>
-    <div class="cell" data-index="5"></div>
-    <div class="cell" data-index="6"></div>
-    <div class="cell" data-index="7"></div>
-    <div class="cell" data-index="8"></div>
-    <div class="win-line" id="winLine"></div>
-  </div>
-
-  <div class="controls">
-    <button id="resetBtn">Reset Board</button>
-    <button id="changeNamesBtn">Change Players</button>
-  </div>
-</div>
 
   <div id="game-container" style="display: none;">
     <div id="status">Ready?</div>
 
+    <div class="board" id="board">
+      <div class="cell" data-index="0"></div>
+      <div class="cell" data-index="1"></div>
+      <div class="cell" data-index="2"></div>
+      <div class="cell" data-index="3"></div>
+      <div class="cell" data-index="4"></div>
+      <div class="cell" data-index="5"></div>
+      <div class="cell" data-index="6"></div>
+      <div class="cell" data-index="7"></div>
+      <div class="cell" data-index="8"></div>
+      <div class="win-line" id="winLine"></div>
+    </div>
+
+    <div class="controls">
+      <button id="resetBtn">Reset Board</button>
+      <button id="changeNamesBtn">Change Players</button>
+    </div>
   </div>
 
-  
   <div class="leaderboard">
-      <h3>🏆 Leaderboard</h3>
-      <div class="score-row">
-        <span>Player X</span>
-        <span id="scoreX">0</span>
-      </div>
-      <div class="score-row">
-        <span>Player O</span>
-        <span id="scoreO">0</span>
-      </div>
-      <div class="score-row">
-        <span>Draws</span>
-        <span id="scoreDraw">0</span>
-      </div>
-      <button id="resetScores">Reset Leaderboard</button>
+    <h3>🏆 Leaderboard</h3>
+    <div class="score-row">
+      <span>Player X</span>
+      <span id="scoreX">0</span>
     </div>
-    
-</div>
+    <div class="score-row">
+      <span>Player O</span>
+      <span id="scoreO">0</span>
+    </div>
+    <div class="score-row">
+      <span>Draws</span>
+      <span id="scoreDraw">0</span>
+    </div>
+    <button id="resetScores">Reset Leaderboard</button>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
