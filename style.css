@@ -175,9 +175,9 @@ button {
   height: 6px;
   background: grey;
   width: 0;
-  top: 0;
-  left: 0;
-  transform-origin: left center;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
   transition: all 0.4s ease;
   border-radius: 5px;
 }

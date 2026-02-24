@@ -149,27 +149,56 @@ function resetGame() {
 
 function drawWinLine(pattern) {
   const winLine = document.getElementById("winLine");
+  const board = document.getElementById("board");
 
-  const positions = {
-    "0,1,2": { top: "16%", left: "5%", width: "90%", rotate: "0deg" },
-    "3,4,5": { top: "50%", left: "5%", width: "90%", rotate: "0deg" },
-    "6,7,8": { top: "83%", left: "5%", width: "90%", rotate: "0deg" },
-
-    "0,3,6": { top: "5%", left: "16%", width: "90%", rotate: "90deg" },
-    "1,4,7": { top: "5%", left: "50%", width: "90%", rotate: "90deg" },
-    "2,5,8": { top: "5%", left: "83%", width: "90%", rotate: "90deg" },
-
-    "0,4,8": { top: "5%", left: "5%", width: "130%", rotate: "45deg" },
-    "2,4,6": { top: "5%", left: "95%", width: "130%", rotate: "-45deg" }
-  };
+  const boardRect = board.getBoundingClientRect();
+  const boardSize = boardRect.width;
 
   const key = pattern.toString();
-  const pos = positions[key];
 
-  winLine.style.top = pos.top;
-  winLine.style.left = pos.left;
-  winLine.style.width = pos.width;
-  winLine.style.transform = `rotate(${pos.rotate})`;
+  // Horizontal wins
+  if (["0,1,2", "3,4,5", "6,7,8"].includes(key)) {
+    const rowIndex = Math.floor(pattern[0] / 3);
+    const cellHeight = boardSize / 3;
+    const topPosition = cellHeight * rowIndex + cellHeight / 2;
+
+    winLine.style.width = boardSize + "px";
+    winLine.style.top = topPosition + "px";
+    winLine.style.left = boardSize / 2 + "px";
+    winLine.style.transform = "translate(-50%, -50%) rotate(0deg)";
+  }
+
+  // Vertical wins
+  else if (["0,3,6", "1,4,7", "2,5,8"].includes(key)) {
+    const colIndex = pattern[0] % 3;
+    const cellWidth = boardSize / 3;
+    const leftPosition = cellWidth * colIndex + cellWidth / 2;
+
+    winLine.style.width = boardSize + "px";
+    winLine.style.top = boardSize / 2 + "px";
+    winLine.style.left = leftPosition + "px";
+    winLine.style.transform = "translate(-50%, -50%) rotate(90deg)";
+  }
+
+  // Diagonal 1 (0,4,8)
+  else if (key === "0,4,8") {
+    const diagonal = Math.sqrt(boardSize * boardSize * 2);
+
+    winLine.style.width = diagonal + "px";
+    winLine.style.top = boardSize / 2 + "px";
+    winLine.style.left = boardSize / 2 + "px";
+    winLine.style.transform = "translate(-50%, -50%) rotate(45deg)";
+  }
+
+  // Diagonal 2 (2,4,6)
+  else if (key === "2,4,6") {
+    const diagonal = Math.sqrt(boardSize * boardSize * 2);
+
+    winLine.style.width = diagonal + "px";
+    winLine.style.top = boardSize / 2 + "px";
+    winLine.style.left = boardSize / 2 + "px";
+    winLine.style.transform = "translate(-50%, -50%) rotate(-45deg)";
+  }
 }
 
 cells.forEach(cell => cell.addEventListener("click", handleCellClick));
