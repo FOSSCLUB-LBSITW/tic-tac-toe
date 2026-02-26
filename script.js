@@ -16,6 +16,8 @@ let scores = JSON.parse(localStorage.getItem("tttScores")) || {
   draws: 0
 };
 
+let gameHistory = JSON.parse(localStorage.getItem("tttHistory")) || [];
+
 const winningConditions = [
   [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
   [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
@@ -90,19 +92,32 @@ function checkResult() {
 
   if (roundWon) {
     statusText.innerText = `${playerNames[currentPlayer]} wins!`;
-    scores[currentPlayer]++;
-    updateLeaderboard();
-    gameActive = false;
-    drawWinLine(winningPattern);
-    return true;
+
+scores[currentPlayer]++;
+
+saveGameHistory(`${playerNames[currentPlayer]} won`);
+
+updateLeaderboard();
+
+gameActive = false;
+
+drawWinLine(winningPattern);
+
+return true;
   }
 
   if (!gameState.includes("")) {
     statusText.innerText = "It's a draw!";
-    scores.draws++;
-    updateLeaderboard();
-    gameActive = false;
-    return true;
+
+scores.draws++;
+
+saveGameHistory("Draw");
+
+updateLeaderboard();
+
+gameActive = false;
+
+return true;
   }
 
   return false;
@@ -216,3 +231,38 @@ changeNamesBtn.addEventListener("click", () => {
   // Reset board state
   resetGame();
 });
+// GAME HISTORY FUNCTION
+
+function saveGameHistory(result) {
+
+  gameHistory.push(result);
+
+  localStorage.setItem("tttHistory", JSON.stringify(gameHistory));
+
+  displayGameHistory();
+
+}
+
+function displayGameHistory() {
+
+  const historyList = document.getElementById("historyList");
+
+  if (!historyList) return;
+
+  historyList.innerHTML = "";
+
+  gameHistory.forEach((result, index) => {
+
+    const li = document.createElement("li");
+
+    li.innerText = `Game ${index + 1}: ${result}`;
+
+    historyList.appendChild(li);
+
+  });
+
+}
+
+// Load history when page loads
+
+displayGameHistory();
