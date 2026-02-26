@@ -271,6 +271,58 @@ function getBestMove(board, player, perfect = true) {
 
   // If not perfect (depth-limited flavor) could add heuristics; for now return best
   return bestMove || { index: moves[0].index, score: 0 };
+function drawWinLine(pattern) {
+  const winLine = document.getElementById("winLine");
+  const board = document.getElementById("board");
+
+  const boardRect = board.getBoundingClientRect();
+  const boardSize = boardRect.width;
+
+  const key = pattern.toString();
+
+  // Horizontal wins
+  if (["0,1,2", "3,4,5", "6,7,8"].includes(key)) {
+    const rowIndex = Math.floor(pattern[0] / 3);
+    const cellHeight = boardSize / 3;
+    const topPosition = cellHeight * rowIndex + cellHeight / 2;
+
+    winLine.style.width = boardSize + "px";
+    winLine.style.top = topPosition + "px";
+    winLine.style.left = boardSize / 2 + "px";
+    winLine.style.transform = "translate(-50%, -50%) rotate(0deg)";
+  }
+
+  // Vertical wins
+  else if (["0,3,6", "1,4,7", "2,5,8"].includes(key)) {
+    const colIndex = pattern[0] % 3;
+    const cellWidth = boardSize / 3;
+    const leftPosition = cellWidth * colIndex + cellWidth / 2;
+
+    winLine.style.width = boardSize + "px";
+    winLine.style.top = boardSize / 2 + "px";
+    winLine.style.left = leftPosition + "px";
+    winLine.style.transform = "translate(-50%, -50%) rotate(90deg)";
+  }
+
+  // Diagonal 1 (0,4,8)
+  else if (key === "0,4,8") {
+    const diagonal = Math.sqrt(boardSize * boardSize * 2);
+
+    winLine.style.width = diagonal + "px";
+    winLine.style.top = boardSize / 2 + "px";
+    winLine.style.left = boardSize / 2 + "px";
+    winLine.style.transform = "translate(-50%, -50%) rotate(45deg)";
+  }
+
+  // Diagonal 2 (2,4,6)
+  else if (key === "2,4,6") {
+    const diagonal = Math.sqrt(boardSize * boardSize * 2);
+
+    winLine.style.width = diagonal + "px";
+    winLine.style.top = boardSize / 2 + "px";
+    winLine.style.left = boardSize / 2 + "px";
+    winLine.style.transform = "translate(-50%, -50%) rotate(-45deg)";
+  }
 }
 
 // leaderboard
@@ -303,3 +355,15 @@ changeNamesBtn.addEventListener("click", () => {
   gameActive = false;
 });
 updateLeaderboard();
+// Change Players Button Fix
+changeNamesBtn.addEventListener("click", () => {
+  gameContainer.style.display = "none";
+  setupContainer.style.display = "block";
+
+  // Clear input fields (optional but clean)
+  document.getElementById("p1Input").value = "";
+  document.getElementById("p2Input").value = "";
+
+  // Reset board state
+  resetGame();
+});
