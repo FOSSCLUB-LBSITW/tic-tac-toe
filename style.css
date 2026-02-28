@@ -38,6 +38,39 @@ h1 {
   gap: 10px;
 }
 
+/* NEW: Board size selector styles */
+.board-size-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.board-size-selector label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.board-size-selector select {
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+  cursor: pointer;
+  background-color: white;
+}
+
+.board-size-selector select:hover {
+  border-color: #66a6ff;
+}
+
+.board-size-selector select:focus {
+  border-color: #66a6ff;
+}
+
 input {
   padding: 12px;
   border: 2px solid #ddd;
@@ -54,18 +87,18 @@ input:focus {
 .board {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 100px);
-  grid-template-rows: repeat(3, 100px);
   gap: 10px;
   margin: 20px auto;
+  justify-content: center;
+  /* Grid template will be set by JavaScript */
 }
 
 .cell {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   background: white;
   border-radius: 10px;
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: bold;
   display: flex;
   justify-content: center;
@@ -73,6 +106,15 @@ input:focus {
   cursor: pointer;
   transition: transform 0.1s, background 0.3s;
   color: #333;
+}
+
+/* Responsive cell sizes for different board sizes */
+@media (min-width: 768px) {
+  .cell {
+    width: 100px;
+    height: 100px;
+    font-size: 2.5rem;
+  }
 }
 
 .cell:hover {
@@ -105,8 +147,14 @@ button {
   transition: opacity 0.3s, transform 0.1s;
 }
 
-#resetBtn:hover {
-  background: #555;
+#startBtn, #resetBtn, #changeNamesBtn, #resetScores {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+#startBtn:hover, #resetBtn:hover, #changeNamesBtn:hover, #resetScores:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
 }
 
 .game-container {
@@ -162,13 +210,6 @@ button {
   font-weight: bold;
 }
 
-.main-content {
-  display: flex;
-  gap: 40px;
-  align-items: flex-start;
-  justify-content: center;
-}
-
 /* Win line styling */
 .win-line {
   position: absolute;
@@ -180,4 +221,6 @@ button {
   transform-origin: center;
   transition: all 0.4s ease;
   border-radius: 5px;
+  z-index: 10;
+  pointer-events: none;
 }

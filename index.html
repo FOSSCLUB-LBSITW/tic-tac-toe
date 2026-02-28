@@ -15,6 +15,18 @@
       <input type="text" id="p1Input" placeholder="Player X Name" maxlength="15">
       <input type="text" id="p2Input" placeholder="Player O Name" maxlength="15">
     </div>
+    
+    <!-- NEW: Board Size Selector -->
+    <div class="board-size-selector">
+      <label for="boardSize">Board Size:</label>
+      <select id="boardSize">
+        <option value="3">3x3 (Classic)</option>
+        <option value="4">4x4</option>
+        <option value="5">5x5</option>
+        <option value="6">6x6</option>
+      </select>
+    </div>
+    
     <button id="startBtn">Start Game</button>
   </div>
 
@@ -22,15 +34,7 @@
     <div id="status">Ready?</div>
 
     <div class="board" id="board">
-      <div class="cell" data-index="0"></div>
-      <div class="cell" data-index="1"></div>
-      <div class="cell" data-index="2"></div>
-      <div class="cell" data-index="3"></div>
-      <div class="cell" data-index="4"></div>
-      <div class="cell" data-index="5"></div>
-      <div class="cell" data-index="6"></div>
-      <div class="cell" data-index="7"></div>
-      <div class="cell" data-index="8"></div>
+      <!-- Cells will be generated dynamically by JavaScript -->
       <div class="win-line" id="winLine"></div>
     </div>
 
