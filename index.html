@@ -16,6 +16,17 @@
       <input type="text" id="p2Input" placeholder="Player O Name" maxlength="15" value="Player O">
     </div>
 
+    <!-- BOARD SIZE SELECTOR -->
+    <div class="input-group">
+      <label for="boardSize">Board Size</label>
+      <select id="boardSize">
+        <option value="3">3x3 (Classic)</option>
+        <option value="4">4x4</option>
+        <option value="5">5x5</option>
+        <option value="6">6x6</option>
+      </select>
+    </div>
+
     <div class="input-group">
       <label for="modeSelect">Mode</label>
       <select id="modeSelect">
@@ -28,32 +39,19 @@
       <label for="difficulty">Bot Difficulty</label>
       <select id="difficulty" disabled>
         <option value="easy">Easy (Random)</option>
-        <option value="medium">Medium (Minimax + randomness)</option>
-        <option value="hard">Hard (Perfect Minimax)</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
       </select>
     </div>
 
-      <input type="text" id="p1Input" placeholder="Player X Name" maxlength="15">
-      <input type="text" id="p2Input" placeholder="Player O Name" maxlength="15">
-    </div>
     <button id="startBtn">Start Game</button>
   </div>
 
   <div id="game-container" style="display: none;">
     <div id="status">Ready?</div>
 
-    <div class="board" id="board">
-      <div class="cell" data-index="0"></div>
-      <div class="cell" data-index="1"></div>
-      <div class="cell" data-index="2"></div>
-      <div class="cell" data-index="3"></div>
-      <div class="cell" data-index="4"></div>
-      <div class="cell" data-index="5"></div>
-      <div class="cell" data-index="6"></div>
-      <div class="cell" data-index="7"></div>
-      <div class="cell" data-index="8"></div>
-      <div class="win-line" id="winLine"></div>
-    </div>
+    <!-- EMPTY BOARD - Cells will be added by JavaScript -->
+    <div class="board" id="board"></div>
 
     <div class="controls">
       <button id="resetBtn">Reset Board</button>
