@@ -12,6 +12,27 @@
 
   <div id="setup-container">
     <div class="input-group">
+      <input type="text" id="p1Input" placeholder="Player X Name" maxlength="15" value="Player X">
+      <input type="text" id="p2Input" placeholder="Player O Name" maxlength="15" value="Player O">
+    </div>
+
+    <div class="input-group">
+      <label for="modeSelect">Mode</label>
+      <select id="modeSelect">
+        <option value="2p">Two Players</option>
+        <option value="bot">Play vs Bot</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label for="difficulty">Bot Difficulty</label>
+      <select id="difficulty" disabled>
+        <option value="easy">Easy (Random)</option>
+        <option value="medium">Medium (Minimax + randomness)</option>
+        <option value="hard">Hard (Perfect Minimax)</option>
+      </select>
+    </div>
+
       <input type="text" id="p1Input" placeholder="Player X Name" maxlength="15">
       <input type="text" id="p2Input" placeholder="Player O Name" maxlength="15">
     </div>
