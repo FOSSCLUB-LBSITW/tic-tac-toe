@@ -30,15 +30,23 @@ h1 {
   flex-direction: column;
   align-items: center;
   gap: 15px;
+  width: 300px;
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
+  width: 100%;
 }
 
-input {
+.input-group label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+input, select {
   padding: 12px;
   border: 2px solid #ddd;
   border-radius: 8px;
@@ -47,25 +55,33 @@ input {
   transition: border-color 0.3s;
 }
 
-input:focus {
+input:focus, select:focus {
   border-color: #66a6ff;
+}
+
+select {
+  cursor: pointer;
+  background-color: white;
+}
+
+select:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .board {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 100px);
-  grid-template-rows: repeat(3, 100px);
   gap: 10px;
   margin: 20px auto;
+  justify-content: center;
+  /* Grid template will be set by JavaScript */
 }
 
 .cell {
-  width: 100px;
-  height: 100px;
   background: white;
   border-radius: 10px;
-  font-size: 2.5rem;
   font-weight: bold;
   display: flex;
   justify-content: center;
@@ -73,6 +89,7 @@ input:focus {
   cursor: pointer;
   transition: transform 0.1s, background 0.3s;
   color: #333;
+  /* Width, height, and font-size set by JavaScript */
 }
 
 .cell:hover {
@@ -93,6 +110,7 @@ input:focus {
   display: flex;
   gap: 10px;
   justify-content: center;
+  margin-top: 20px;
 }
 
 button {
@@ -103,19 +121,18 @@ button {
   border-radius: 8px;
   cursor: pointer;
   transition: opacity 0.3s, transform 0.1s;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
 }
 
-#resetBtn:hover {
-  background: #555;
+button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
 }
 
-.game-container {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 30px;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  text-align: center;
-  backdrop-filter: blur(10px);
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .leaderboard {
@@ -162,13 +179,6 @@ button {
   font-weight: bold;
 }
 
-.main-content {
-  display: flex;
-  gap: 40px;
-  align-items: flex-start;
-  justify-content: center;
-}
-
 /* Win line styling */
 .win-line {
   position: absolute;
@@ -178,6 +188,8 @@ button {
   top: 50%;
   left: 50%;
   transform-origin: center;
-  transition: all 0.4s ease;
+  transition: none; /* Changed from all 0.4s ease to prevent movement */
   border-radius: 5px;
+  z-index: 10;
+  pointer-events: none;
 }
