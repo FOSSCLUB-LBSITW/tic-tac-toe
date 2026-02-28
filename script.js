@@ -19,6 +19,8 @@ let gameMode = "2p"; // "2p" or "bot"
 let difficulty = "easy"; // easy, medium, hard
 let botSymbol = "O"; // Bot will play as O (human is X)
 
+let gameHistory = JSON.parse(localStorage.getItem("tttHistory")) || [];
+
 const winningConditions = [
   [0,1,2],[3,4,5],[6,7,8],
   [0,3,6],[1,4,7],[2,5,8],
@@ -106,40 +108,54 @@ function playMove(index, player) {
 
 // result checking
 function checkResult() {
-  // check winner
   for (let cond of winningConditions) {
     const [a,b,c] = cond;
+
     if (gameState[a] && gameState[a] === gameState[b] && gameState[b] === gameState[c]) {
+
       const winner = gameState[a];
+
       statusText.innerText = `${playerNames[winner]} wins!`;
+
       scores[winner] = (scores[winner] || 0) + 1;
+
+      saveGameHistory(`${playerNames[winner]} won`);
+
       gameActive = false;
+
       updateLeaderboard();
 
-      // animate win line
       animateWinLine(cond, winner);
+
       return true;
     }
   }
 
-  // draw
   if (!gameState.includes("")) {
+
     statusText.innerText = "It's a draw!";
+
     scores.draws = (scores.draws || 0) + 1;
+
+    saveGameHistory("Draw");
+
     gameActive = false;
+
     updateLeaderboard();
 
-    // hide any previous win line
     const winLine = document.getElementById("winLine");
+
     if (winLine) {
       winLine.style.width = "0";
       winLine.style.opacity = "0";
     }
+
     return true;
   }
 
   return false;
 }
+
 
 // animate the strike line across winning cells
 function animateWinLine(cond, winner) {
@@ -271,6 +287,7 @@ function getBestMove(board, player, perfect = true) {
 
   // If not perfect (depth-limited flavor) could add heuristics; for now return best
   return bestMove || { index: moves[0].index, score: 0 };
+}
 function drawWinLine(pattern) {
   const winLine = document.getElementById("winLine");
   const board = document.getElementById("board");
@@ -367,3 +384,38 @@ changeNamesBtn.addEventListener("click", () => {
   // Reset board state
   resetGame();
 });
+// GAME HISTORY FUNCTION
+
+function saveGameHistory(result) {
+
+  gameHistory.push(result);
+
+  localStorage.setItem("tttHistory", JSON.stringify(gameHistory));
+
+  displayGameHistory();
+
+}
+
+function displayGameHistory() {
+
+  const historyList = document.getElementById("historyList");
+
+  if (!historyList) return;
+
+  historyList.innerHTML = "";
+
+  gameHistory.forEach((result, index) => {
+
+    const li = document.createElement("li");
+
+    li.innerText = `Game ${index + 1}: ${result}`;
+
+    historyList.appendChild(li);
+
+  });
+
+}
+
+// Load history when page loads
+
+displayGameHistory();
