@@ -26,6 +26,24 @@ const winningConditions = [
   [0,3,6],[1,4,7],[2,5,8],
   [0,4,8],[2,4,6]
 ];
+// --- Confetti Animation ---
+function launchConfetti() {
+  const duration = 3000; // 3 seconds
+  const end = Date.now() + duration;
+
+  const interval = setInterval(() => {
+    if (Date.now() > end) {
+      clearInterval(interval);
+      return;
+    }
+
+    confetti({
+      particleCount: 60,
+      spread: 100,
+      origin: { y: 0.6 }
+    });
+  }, 250);
+}
 
 // enable difficulty when bot selected
 modeSelect.addEventListener("change", () => {
@@ -131,6 +149,19 @@ function checkResult() {
     }
   }
 
+  if (roundWon) {
+  statusText.innerText = `${playerNames[currentPlayer]} wins!`;
+  scores[currentPlayer]++;
+  updateLeaderboard();
+  gameActive = false;
+  drawWinLine(winningPattern);
+  
+  launchConfetti(); // 🎉 ADD THIS LINE
+  
+  return true;
+}
+
+  // draw
   if (!gameState.includes("")) {
 
     statusText.innerText = "It's a draw!";
