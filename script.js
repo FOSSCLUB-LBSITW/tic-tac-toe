@@ -56,10 +56,12 @@ function startGame() {
   currentPlayer = "X";
   gameState = ["", "", "", "", "", "", "", "", ""];
   updateStatus();
+
   cells.forEach(cell => {
     cell.innerText = "";
     cell.style.color = "#333";
   });
+
   updateLeaderboard();
 
   const winLine = document.getElementById("winLine");
@@ -67,6 +69,11 @@ function startGame() {
     winLine.style.width = "0";
     winLine.style.opacity = "0";
     winLine.style.transform = "rotate(0deg)";
+  }
+
+  // 🔹 ADD THIS BLOCK
+  if (gameMode === "bot" && currentPlayer === botSymbol) {
+    setTimeout(aiMove, 300);
   }
 }
 
