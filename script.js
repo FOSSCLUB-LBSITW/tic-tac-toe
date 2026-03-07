@@ -1,10 +1,14 @@
-const cells = document.querySelectorAll(".cell");
+// Game state variables
+let cells = [];
 const statusText = document.getElementById("status");
 const resetBtn = document.getElementById("resetBtn");
 const startBtn = document.getElementById("startBtn");
 const changeNamesBtn = document.getElementById("changeNamesBtn");
+const resetScoresBtn = document.getElementById("resetScores");
 const setupContainer = document.getElementById("setup-container");
 const gameContainer = document.getElementById("game-container");
+const boardElement = document.getElementById("board");
+const boardSizeSelect = document.getElementById("boardSize");
 
 const modeSelect = document.getElementById("modeSelect");
 const difficultySelect = document.getElementById("difficulty");
@@ -12,23 +16,26 @@ const difficultySelect = document.getElementById("difficulty");
 let playerNames = { "X": "Player X", "O": "Player O" };
 let currentPlayer = "X";
 let gameActive = false;
-let gameState = ["", "", "", "", "", "", "", "", ""];
+let gameState = [];
+let boardSize = 3;
 let scores = JSON.parse(localStorage.getItem("tttScores")) || { X: 0, O: 0, draws: 0 };
 
-let gameMode = "2p"; // "2p" or "bot"
-let difficulty = "easy"; // easy, medium, hard
-let botSymbol = "O"; // Bot will play as O (human is X)
+let gameMode = "2p";
+let difficulty = "easy";
+let botSymbol = "O";
 
+// Track scored patterns for multiple wins
+let scoredPatterns = new Set();
+
+// Game history
 let gameHistory = JSON.parse(localStorage.getItem("tttHistory")) || [];
 
-const winningConditions = [
-  [0,1,2],[3,4,5],[6,7,8],
-  [0,3,6],[1,4,7],[2,5,8],
-  [0,4,8],[2,4,6]
-];
+// Winning patterns will be generated dynamically
+let winningConditions = [];
+
 // --- Confetti Animation ---
 function launchConfetti() {
-  const duration = 3000; // 3 seconds
+  const duration = 3000;
   const end = Date.now() + duration;
 
   const interval = setInterval(() => {
@@ -43,6 +50,99 @@ function launchConfetti() {
       origin: { y: 0.6 }
     });
   }, 250);
+}
+
+// --- Board Size Functions ---
+
+function generateWinningPatterns(size) {
+  const patterns = [];
+  
+  // Check rows for any 3 consecutive cells
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col <= size - 3; col++) {
+      const pattern = [];
+      for (let i = 0; i < 3; i++) {
+        pattern.push(row * size + (col + i));
+      }
+      patterns.push(pattern);
+    }
+  }
+  
+  // Check columns for any 3 consecutive cells
+  for (let col = 0; col < size; col++) {
+    for (let row = 0; row <= size - 3; row++) {
+      const pattern = [];
+      for (let i = 0; i < 3; i++) {
+        pattern.push((row + i) * size + col);
+      }
+      patterns.push(pattern);
+    }
+  }
+  
+  // Check diagonals (top-left to bottom-right) for any 3 consecutive cells
+  for (let row = 0; row <= size - 3; row++) {
+    for (let col = 0; col <= size - 3; col++) {
+      const pattern = [];
+      for (let i = 0; i < 3; i++) {
+        pattern.push((row + i) * size + (col + i));
+      }
+      patterns.push(pattern);
+    }
+  }
+  
+  // Check diagonals (top-right to bottom-left) for any 3 consecutive cells
+  for (let row = 0; row <= size - 3; row++) {
+    for (let col = 2; col < size; col++) {
+      const pattern = [];
+      for (let i = 0; i < 3; i++) {
+        pattern.push((row + i) * size + (col - i));
+      }
+      patterns.push(pattern);
+    }
+  }
+  
+  return patterns;
+}
+
+function createBoard(size) {
+  // Clear the board completely
+  boardElement.innerHTML = '';
+  
+  // Calculate cell size based on viewport
+  const viewportWidth = window.innerWidth;
+  let cellSize;
+  if (size === 3) cellSize = 100;
+  else if (size === 4) cellSize = 90;
+  else if (size === 5) cellSize = 80;
+  else cellSize = 70;
+  
+  // Adjust for mobile
+  if (viewportWidth < 600) {
+    cellSize = cellSize * 0.8;
+  }
+  
+  // Set grid template with fixed pixel sizes
+  boardElement.style.gridTemplateColumns = `repeat(${size}, ${cellSize}px)`;
+  boardElement.style.gridTemplateRows = `repeat(${size}, ${cellSize}px)`;
+  boardElement.style.width = 'fit-content';
+  boardElement.style.height = 'fit-content';
+  
+  // Create cells with fixed dimensions
+  for (let i = 0; i < size * size; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.setAttribute('data-index', i);
+    cell.style.width = `${cellSize}px`;
+    cell.style.height = `${cellSize}px`;
+    cell.style.fontSize = `${cellSize * 0.4}px`;
+    boardElement.appendChild(cell);
+  }
+  
+  // Update cells reference
+  cells = document.querySelectorAll(".cell");
+  
+  // Add click listeners to new cells
+  cells.forEach(cell => cell.addEventListener("click", handleCellClick));
 }
 
 // enable difficulty when bot selected
@@ -61,35 +161,52 @@ startBtn.addEventListener("click", () => {
 
   gameMode = modeSelect.value;
   difficulty = difficultySelect.value;
+  
+  // Get selected board size
+  boardSize = parseInt(boardSizeSelect.value);
+  
+  // Generate winning patterns for this board size
+  winningConditions = generateWinningPatterns(boardSize);
+  
+  // Create the board with selected size
+  createBoard(boardSize);
 
   setupContainer.style.display = "none";
   gameContainer.style.display = "block";
-  startGame();
+  
+  // Small delay to ensure board is rendered
+  setTimeout(() => startGame(), 50);
 });
 
 function startGame() {
   gameActive = true;
   currentPlayer = "X";
-  gameState = ["", "", "", "", "", "", "", "", ""];
-  updateStatus();
+  gameState = new Array(boardSize * boardSize).fill("");
+  scoredPatterns.clear();
+  
+  // Update cells reference and clear them
+  cells = document.querySelectorAll(".cell");
   cells.forEach(cell => {
     cell.innerText = "";
     cell.style.color = "#333";
+    cell.style.backgroundColor = "white";
   });
+  
+  // Remove all win lines
+  const winLines = document.querySelectorAll('.win-line');
+  winLines.forEach(line => line.remove());
+  
+  updateStatus();
   updateLeaderboard();
-
-  // reset/hide win line
-  const winLine = document.getElementById("winLine");
-  if (winLine) {
-    winLine.style.width = "0";
-    winLine.style.opacity = "0";
-    winLine.style.transform = "rotate(0deg)";
-  }
-  // if bot starts first in some future change, call aiMove() here
 }
 
 function updateStatus() {
-  if (!gameActive) return;
+  if (!gameActive) {
+    if (gameState.length > 0 && !gameState.includes("")) {
+      showGameOver();
+    }
+    return;
+  }
   statusText.innerText = `${playerNames[currentPlayer]}'s turn (${currentPlayer})`;
 }
 
@@ -103,9 +220,30 @@ function handleCellClick(e) {
 
   playMove(cellIndex, currentPlayer);
 
-  if (checkResult()) return;
+  // Check for new wins after this move
+  const winDetected = checkForNewWins();
+  
+  // Check if game is complete (board full)
+  if (!gameState.includes("")) {
+    gameActive = false;
+    showGameOver();
+    
+    // Save game history
+    const xWins = scores.X;
+    const oWins = scores.O;
+    if (xWins > oWins) {
+      saveGameHistory(`${playerNames["X"]} won the game!`);
+    } else if (oWins > xWins) {
+      saveGameHistory(`${playerNames["O"]} won the game!`);
+    } else {
+      saveGameHistory("Game ended in a tie");
+    }
+    
+    launchConfetti();
+    return;
+  }
 
-  // switch
+  // ALWAYS switch player after a move
   currentPlayer = currentPlayer === "X" ? "O" : "X";
   updateStatus();
 
@@ -121,108 +259,115 @@ function playMove(index, player) {
   if (cell) {
     cell.textContent = player;
     cell.style.color = player === "X" ? "#3498db" : "#e67e22";
+    cell.style.backgroundColor = player === "X" ? "#e8f4fc" : "#fff1e6";
   }
 }
 
-// result checking
-function checkResult() {
-  for (let cond of winningConditions) {
-    const [a,b,c] = cond;
-
-    if (gameState[a] && gameState[a] === gameState[b] && gameState[b] === gameState[c]) {
-
-      const winner = gameState[a];
-
-      statusText.innerText = `${playerNames[winner]} wins!`;
-
-      scores[winner] = (scores[winner] || 0) + 1;
-
-      saveGameHistory(`${playerNames[winner]} won`);
-
-      gameActive = false;
-
-      updateLeaderboard();
-
-      animateWinLine(cond, winner);
-
-      return true;
+// Check for new winning patterns
+function checkForNewWins() {
+  let newWinsFound = false;
+  
+  for (let pattern of winningConditions) {
+    const patternKey = pattern.join(',');
+    
+    // Skip if this pattern has already been scored
+    if (scoredPatterns.has(patternKey)) continue;
+    
+    const [a, b, c] = pattern;
+    
+    if (
+      gameState[a] !== "" &&
+      gameState[a] === gameState[b] &&
+      gameState[a] === gameState[c]
+    ) {
+      // New win found!
+      const winningPlayer = gameState[a];
+      
+      // Add to scored patterns
+      scoredPatterns.add(patternKey);
+      
+      // Award point to the player
+      scores[winningPlayer]++;
+      newWinsFound = true;
+      
+      // Draw the win line for this pattern
+      drawWinLine(pattern, winningPlayer);
+      
+      // Show win message
+      statusText.innerText = `🎉 ${playerNames[winningPlayer]} scores! +1 point`;
     }
   }
-
-  if (roundWon) {
-  statusText.innerText = `${playerNames[currentPlayer]} wins!`;
-  scores[currentPlayer]++;
-  updateLeaderboard();
-  gameActive = false;
-  drawWinLine(winningPattern);
   
-  launchConfetti(); // 🎉 ADD THIS LINE
-  
-  return true;
-}
-
-  // draw
-  if (!gameState.includes("")) {
-
-    statusText.innerText = "It's a draw!";
-
-    scores.draws = (scores.draws || 0) + 1;
-
-    saveGameHistory("Draw");
-
-    gameActive = false;
-
+  if (newWinsFound) {
     updateLeaderboard();
-
-    const winLine = document.getElementById("winLine");
-
-    if (winLine) {
-      winLine.style.width = "0";
-      winLine.style.opacity = "0";
-    }
-
-    return true;
   }
-
-  return false;
+  
+  return newWinsFound;
 }
 
-
-// animate the strike line across winning cells
-function animateWinLine(cond, winner) {
-  const winLine = document.getElementById("winLine");
+// Draw win line for a specific pattern - FIXED VERSION
+function drawWinLine(pattern, winningPlayer) {
+  // Get fresh references
   const board = document.getElementById("board");
-  if (!winLine || !board) return;
-
-  const cellEls = Array.from(document.querySelectorAll(".cell"));
-  const startCell = cellEls[cond[0]];
-  const endCell = cellEls[cond[2]]; // endpoints give full length for row/col/diag
-
+  const currentCells = document.querySelectorAll(".cell");
+  
+  if (!board || currentCells.length === 0) return;
+  
+  // Get the cells in the winning pattern
+  const firstCell = currentCells[pattern[0]];
+  const lastCell = currentCells[pattern[pattern.length - 1]];
+  
+  if (!firstCell || !lastCell) return;
+  
+  // Get precise positions
   const boardRect = board.getBoundingClientRect();
-  const sRect = startCell.getBoundingClientRect();
-  const eRect = endCell.getBoundingClientRect();
-
-  // centers relative to board
-  const x1 = sRect.left - boardRect.left + sRect.width / 2;
-  const y1 = sRect.top - boardRect.top + sRect.height / 2;
-  const x2 = eRect.left - boardRect.left + eRect.width / 2;
-  const y2 = eRect.top - boardRect.top + eRect.height / 2;
-
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const length = Math.hypot(dx, dy);
-  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
-  // apply styles (winLine transform-origin is left center)
-  winLine.style.width = `${length}px`;
-  // left/top should be the start center
-  winLine.style.left = `${x1}px`;
-  // position line vertically centered on the y coordinate
-  const h = winLine.offsetHeight || 6;
-  winLine.style.top = `${y1 - h / 2}px`;
+  const firstRect = firstCell.getBoundingClientRect();
+  const lastRect = lastCell.getBoundingClientRect();
+  
+  // Calculate centers relative to board
+  const startX = firstRect.left + firstRect.width / 2 - boardRect.left;
+  const startY = firstRect.top + firstRect.height / 2 - boardRect.top;
+  const endX = lastRect.left + lastRect.width / 2 - boardRect.left;
+  const endY = lastRect.top + lastRect.height / 2 - boardRect.top;
+  
+  // Calculate line properties
+  const dx = endX - startX;
+  const dy = endY - startY;
+  const length = Math.sqrt(dx * dx + dy * dy);
+  const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+  
+  // Create the line
+  const winLine = document.createElement('div');
+  winLine.className = 'win-line';
+  winLine.setAttribute('data-pattern', pattern.join(','));
+  
+  // Position the line
+  winLine.style.left = startX + 'px';
+  winLine.style.top = startY + 'px';
+  winLine.style.width = length + 'px';
+  winLine.style.height = '6px';
   winLine.style.transform = `rotate(${angle}deg)`;
-  winLine.style.background = winner === "X" ? "#3498db" : "#e67e22";
-  winLine.style.opacity = "1";
+  winLine.style.transformOrigin = '0 0';
+  
+  // Color based on player
+  const playerColor = winningPlayer === "X" ? "#3498db" : "#e67e22";
+  winLine.style.background = `linear-gradient(90deg, ${playerColor}, #4ecdc4)`;
+  
+  // Add to board
+  board.appendChild(winLine);
+}
+
+function showGameOver() {
+  const xWins = scores.X;
+  const oWins = scores.O;
+  
+  if (xWins > oWins) {
+    statusText.innerText = `🏆 GAME OVER! ${playerNames["X"]} (X) wins with ${xWins} points!`;
+  } else if (oWins > xWins) {
+    statusText.innerText = `🏆 GAME OVER! ${playerNames["O"]} (O) wins with ${oWins} points!`;
+  } else {
+    statusText.innerText = `🤝 GAME OVER! It's a tie! X: ${xWins} - O: ${oWins}`;
+  }
 }
 
 // AI move logic
@@ -235,25 +380,42 @@ function aiMove() {
   if (difficulty === "easy") {
     moveIndex = empty[Math.floor(Math.random() * empty.length)];
   } else if (difficulty === "medium") {
-    // 25% chance to play random to be beatable
     if (Math.random() < 0.25) {
       moveIndex = empty[Math.floor(Math.random() * empty.length)];
     } else {
-      moveIndex = getBestMove(gameState.slice(), botSymbol, false).index;
+      moveIndex = getBestMove(gameState.slice(), botSymbol).index;
     }
-  } else { // hard
-    moveIndex = getBestMove(gameState.slice(), botSymbol, true).index;
+  } else {
+    moveIndex = getBestMove(gameState.slice(), botSymbol).index;
   }
 
   playMove(moveIndex, botSymbol);
+  
+  const winDetected = checkForNewWins();
 
-  if (checkResult()) return;
+  if (!gameState.includes("")) {
+    gameActive = false;
+    showGameOver();
+    
+    const xWins = scores.X;
+    const oWins = scores.O;
+    if (xWins > oWins) {
+      saveGameHistory(`${playerNames["X"]} won the game!`);
+    } else if (oWins > xWins) {
+      saveGameHistory(`${playerNames["O"]} won the game!`);
+    } else {
+      saveGameHistory("Game ended in a tie");
+    }
+    
+    launchConfetti();
+    return;
+  }
 
   currentPlayer = currentPlayer === "X" ? "O" : "X";
   updateStatus();
 }
 
-// helpers
+// Helper functions
 function availableIndices(board) {
   const inds = [];
   for (let i=0;i<board.length;i++) if (!board[i]) inds.push(i);
@@ -271,9 +433,7 @@ function checkWinner(board) {
 }
 
 // Minimax implementation
-// returns { index, score }
-// maximize for botSymbol
-function getBestMove(board, player, perfect = true) {
+function getBestMove(board, player) {
   const opponent = player === "X" ? "O" : "X";
   const winner = checkWinner(board);
   if (winner === botSymbol) return { index: -1, score: 10 };
@@ -285,19 +445,15 @@ function getBestMove(board, player, perfect = true) {
     if (board[i] === "") {
       const move = { index: i };
       board[i] = player;
-
-      const result = getBestMove(board, opponent, perfect);
+      const result = getBestMove(board, opponent);
       move.score = result.score;
-
       board[i] = "";
       moves.push(move);
     }
   }
 
-  // choose best depending on player
   let bestMove;
   if (player === botSymbol) {
-    // maximize
     let bestScore = -Infinity;
     for (const m of moves) {
       if (m.score > bestScore) {
@@ -306,7 +462,6 @@ function getBestMove(board, player, perfect = true) {
       }
     }
   } else {
-    // minimize
     let bestScore = Infinity;
     for (const m of moves) {
       if (m.score < bestScore) {
@@ -316,64 +471,10 @@ function getBestMove(board, player, perfect = true) {
     }
   }
 
-  // If not perfect (depth-limited flavor) could add heuristics; for now return best
   return bestMove || { index: moves[0].index, score: 0 };
 }
-function drawWinLine(pattern) {
-  const winLine = document.getElementById("winLine");
-  const board = document.getElementById("board");
 
-  const boardRect = board.getBoundingClientRect();
-  const boardSize = boardRect.width;
-
-  const key = pattern.toString();
-
-  // Horizontal wins
-  if (["0,1,2", "3,4,5", "6,7,8"].includes(key)) {
-    const rowIndex = Math.floor(pattern[0] / 3);
-    const cellHeight = boardSize / 3;
-    const topPosition = cellHeight * rowIndex + cellHeight / 2;
-
-    winLine.style.width = boardSize + "px";
-    winLine.style.top = topPosition + "px";
-    winLine.style.left = boardSize / 2 + "px";
-    winLine.style.transform = "translate(-50%, -50%) rotate(0deg)";
-  }
-
-  // Vertical wins
-  else if (["0,3,6", "1,4,7", "2,5,8"].includes(key)) {
-    const colIndex = pattern[0] % 3;
-    const cellWidth = boardSize / 3;
-    const leftPosition = cellWidth * colIndex + cellWidth / 2;
-
-    winLine.style.width = boardSize + "px";
-    winLine.style.top = boardSize / 2 + "px";
-    winLine.style.left = leftPosition + "px";
-    winLine.style.transform = "translate(-50%, -50%) rotate(90deg)";
-  }
-
-  // Diagonal 1 (0,4,8)
-  else if (key === "0,4,8") {
-    const diagonal = Math.sqrt(boardSize * boardSize * 2);
-
-    winLine.style.width = diagonal + "px";
-    winLine.style.top = boardSize / 2 + "px";
-    winLine.style.left = boardSize / 2 + "px";
-    winLine.style.transform = "translate(-50%, -50%) rotate(45deg)";
-  }
-
-  // Diagonal 2 (2,4,6)
-  else if (key === "2,4,6") {
-    const diagonal = Math.sqrt(boardSize * boardSize * 2);
-
-    winLine.style.width = diagonal + "px";
-    winLine.style.top = boardSize / 2 + "px";
-    winLine.style.left = boardSize / 2 + "px";
-    winLine.style.transform = "translate(-50%, -50%) rotate(-45deg)";
-  }
-}
-
-// leaderboard
+// Leaderboard functions
 function updateLeaderboard() {
   document.getElementById("scoreX").innerText = scores.X || 0;
   document.getElementById("scoreO").innerText = scores.O || 0;
@@ -381,72 +482,91 @@ function updateLeaderboard() {
   localStorage.setItem("tttScores", JSON.stringify(scores));
 }
 
-document.getElementById("resetScores").addEventListener("click", () => {
+resetScoresBtn.addEventListener("click", () => {
   scores = { X: 0, O: 0, draws: 0 };
   localStorage.removeItem("tttScores");
   updateLeaderboard();
 });
 
-// Reset & UI
-function resetGame() {
-  startGame();
-  const winLine = document.getElementById("winLine");
-  if (winLine) winLine.style.width = "0";
-}
-cells.forEach(cell => cell.addEventListener("click", handleCellClick));
-resetBtn.addEventListener("click", resetGame);
-
-// allow going back to setup
-changeNamesBtn.addEventListener("click", () => {
-  setupContainer.style.display = "block";
-  gameContainer.style.display = "none";
-  gameActive = false;
-});
-updateLeaderboard();
-// Change Players Button Fix
-changeNamesBtn.addEventListener("click", () => {
-  gameContainer.style.display = "none";
-  setupContainer.style.display = "block";
-
-  // Clear input fields (optional but clean)
-  document.getElementById("p1Input").value = "";
-  document.getElementById("p2Input").value = "";
-
-  // Reset board state
-  resetGame();
-});
-// GAME HISTORY FUNCTION
-
+// Game History Functions
 function saveGameHistory(result) {
-
   gameHistory.push(result);
-
+  if (gameHistory.length > 10) gameHistory.shift(); // Keep last 10 games
   localStorage.setItem("tttHistory", JSON.stringify(gameHistory));
-
   displayGameHistory();
-
 }
 
 function displayGameHistory() {
-
   const historyList = document.getElementById("historyList");
-
   if (!historyList) return;
-
+  
   historyList.innerHTML = "";
-
-  gameHistory.forEach((result, index) => {
-
+  gameHistory.slice().reverse().forEach((result, index) => {
     const li = document.createElement("li");
-
-    li.innerText = `Game ${index + 1}: ${result}`;
-
+    li.innerText = `${gameHistory.length - index}: ${result}`;
     historyList.appendChild(li);
-
   });
-
 }
 
-// Load history when page loads
+// Reset function
+function resetGame() {
+  startGame();
+}
 
+// Change players button
+changeNamesBtn.addEventListener("click", () => {
+  gameContainer.style.display = "none";
+  setupContainer.style.display = "block";
+  gameActive = false;
+
+  // Clear input fields
+  document.getElementById("p1Input").value = "Player X";
+  document.getElementById("p2Input").value = "Player O";
+  
+  // Reset board size selector
+  if (boardSizeSelect) {
+    boardSizeSelect.value = "3";
+  }
+  
+  // Reset mode and difficulty
+  if (modeSelect) {
+    modeSelect.value = "2p";
+    difficultySelect.disabled = true;
+  }
+  
+  // Clear all win lines
+  const winLines = document.querySelectorAll('.win-line');
+  winLines.forEach(line => line.remove());
+  
+  // Reset status
+  statusText.innerText = "Ready?";
+});
+
+// Event listeners
+resetBtn.addEventListener("click", resetGame);
+
+// Window resize handler
+window.addEventListener('resize', () => {
+  const existingLines = document.querySelectorAll('.win-line');
+  if (existingLines.length > 0) {
+    const linesData = [];
+    existingLines.forEach(line => {
+      const pattern = line.getAttribute('data-pattern');
+      if (pattern) {
+        linesData.push(pattern.split(',').map(Number));
+      }
+      line.remove();
+    });
+    
+    linesData.forEach(pattern => {
+      const player = gameState[pattern[0]];
+      if (player) {
+        drawWinLine(pattern, player);
+      }
+    });
+  }
+});
+
+// Initialize
+updateLeaderboard();
 displayGameHistory();
