@@ -245,54 +245,53 @@ function checkWinner(board) {
   return null;
 }
 
-// Minimax implementation
+// Minimax implementation with Alpha-Beta Pruning
 // returns { index, score }
-// maximize for botSymbol
-function getBestMove(board, player, perfect = true) {
+function getBestMove(board, player, perfect = true, alpha = -Infinity, beta = Infinity) {
   const opponent = player === "X" ? "O" : "X";
   const winner = checkWinner(board);
+  
   if (winner === botSymbol) return { index: -1, score: 10 };
   if (winner === (botSymbol === "X" ? "O" : "X")) return { index: -1, score: -10 };
   if (!board.includes("")) return { index: -1, score: 0 };
 
-  const moves = [];
-  for (let i=0;i<board.length;i++) {
-    if (board[i] === "") {
-      const move = { index: i };
-      board[i] = player;
-
-      const result = getBestMove(board, opponent, perfect);
-      move.score = result.score;
-
-      board[i] = "";
-      moves.push(move);
-    }
-  }
-
-  // choose best depending on player
   let bestMove;
-  if (player === botSymbol) {
-    // maximize
-    let bestScore = -Infinity;
-    for (const m of moves) {
-      if (m.score > bestScore) {
-        bestScore = m.score;
-        bestMove = m;
-      }
-    }
-  } else {
-    // minimize
-    let bestScore = Infinity;
-    for (const m of moves) {
-      if (m.score < bestScore) {
-        bestScore = m.score;
-        bestMove = m;
-      }
-    }
-  }
 
-  // If not perfect (depth-limited flavor) could add heuristics; for now return best
-  return bestMove || { index: moves[0].index, score: 0 };
+  if (player === botSymbol) {
+    let bestScore = -Infinity;
+    for (let i = 0; i < board.length; i++) {
+      if (board[i] === "") {
+        board[i] = player;
+        let result = getBestMove(board, opponent, perfect, alpha, beta);
+        board[i] = "";
+        
+        if (result.score > bestScore) {
+          bestScore = result.score;
+          bestMove = { index: i, score: bestScore };
+        }
+        alpha = Math.max(alpha, bestScore);
+        if (beta <= alpha) break; // Alpha-Beta Pruning
+      }
+    }
+    return bestMove || { index: -1, score: bestScore };
+  } else {
+    let bestScore = Infinity;
+    for (let i = 0; i < board.length; i++) {
+      if (board[i] === "") {
+        board[i] = player;
+        let result = getBestMove(board, opponent, perfect, alpha, beta);
+        board[i] = "";
+        
+        if (result.score < bestScore) {
+          bestScore = result.score;
+          bestMove = { index: i, score: bestScore };
+        }
+        beta = Math.min(beta, bestScore);
+        if (beta <= alpha) break; // Alpha-Beta Pruning
+      }
+    }
+    return bestMove || { index: -1, score: bestScore };
+  }
 }
 // leaderboard
 function updateLeaderboard() {
